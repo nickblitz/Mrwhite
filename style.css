@@ -371,62 +371,26 @@ input[type="text"]::placeholder { color: var(--text-muted); }
   margin-top: 4px;
 }
 
-/* ===== Clues Screen ===== */
-.clues-body {
+/* ===== Clues Screen (verbal) ===== */
+.clues-verbal-body {
   flex: 1;
-  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-}
-.clues-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.clue-item {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 32px;
+  text-align: center;
 }
-.clue-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-.clue-info { flex: 1; }
-.clue-player-name { font-size: 0.8rem; color: var(--text-muted); }
-.clue-word { font-size: 1rem; font-weight: 700; }
-.clue-pending { color: var(--text-muted); font-style: italic; font-size: 0.9rem; }
+.clues-verbal-icon { font-size: 4rem; }
+.clues-verbal-body h3 { font-size: 1.3rem; font-weight: 800; }
+.clues-verbal-body p { color: var(--text-muted); max-width: 320px; line-height: 1.6; }
 
-.clue-input-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-}
-.clue-input-section p {
-  font-weight: 600;
-  margin-bottom: 12px;
-}
 .clue-input-row {
   display: flex;
   gap: 10px;
 }
 .clue-input-row input { flex: 1; }
-.clue-hint {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
 
 /* ===== Vote Screen ===== */
 .vote-body {
@@ -513,14 +477,51 @@ input[type="text"]::placeholder { color: var(--text-muted); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding: 40px 32px;
+  gap: 16px;
+  padding: 40px 24px;
   text-align: center;
   background: radial-gradient(ellipse at 50% 30%, #2d0000 0%, var(--bg) 70%);
 }
-.elim-icon { font-size: 5rem; margin-bottom: 8px; }
 #elim-title { font-size: 1.8rem; font-weight: 900; }
 #elim-message { color: var(--text-muted); max-width: 320px; font-size: 1rem; }
+
+/* ===== Stick Figure Scene ===== */
+.stick-scene {
+  width: 100%;
+  max-width: 420px;
+}
+.stick-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Cannibal: slides right, pauses after catching victim */
+.sf-cannibal {
+  animation: cannibalChase 3.2s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  transform-box: fill-box;
+}
+@keyframes cannibalChase {
+  0%   { transform: translateX(0px); }
+  55%  { transform: translateX(210px); }
+  65%  { transform: translateX(218px); }
+  100% { transform: translateX(218px); }
+}
+
+/* Victim: tries to flee right, slows, then falls */
+.sf-victim {
+  animation: victimFlee 3.2s ease-in-out forwards;
+  transform-origin: 290px 118px;   /* pivot at feet on ground */
+  transform-box: view-box;
+}
+@keyframes victimFlee {
+  0%   { transform: translateX(0px)  rotate(0deg); }
+  30%  { transform: translateX(30px) rotate(0deg); }
+  55%  { transform: translateX(42px) rotate(0deg); }
+  62%  { transform: translateX(42px) rotate(0deg); }
+  78%  { transform: translateX(42px) rotate(75deg); }
+  100% { transform: translateX(42px) rotate(90deg); }
+}
 
 /* ===== Guess Screen ===== */
 .guess-body {

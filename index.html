@@ -117,22 +117,14 @@
 <!-- SCREEN: Clues -->
 <div id="screen-clues" class="screen">
   <div class="screen-header">
-    <h2>Give Your Clue</h2>
+    <h2>Clue Phase</h2>
     <div class="round-badge" id="clue-round-badge">Round 1</div>
   </div>
-  <div class="clues-body">
-    <div id="clues-list" class="clues-list"></div>
-    <div id="clue-input-section" class="clue-input-section">
-      <p id="clue-prompt"></p>
-      <div class="clue-input-row">
-        <input type="text" id="clue-input" maxlength="30" placeholder="Your one-word clue..." onkeydown="if(event.key==='Enter') submitClue()" />
-        <button class="btn btn-primary" onclick="submitClue()">Submit</button>
-      </div>
-      <p class="clue-hint">One word only!</p>
-    </div>
-    <div id="clue-done-section" class="hidden">
-      <button class="btn btn-primary" onclick="goToVote()">Start Voting</button>
-    </div>
+  <div class="clues-verbal-body">
+    <div class="clues-verbal-icon">&#128172;</div>
+    <h3>Everyone give one word — out loud!</h3>
+    <p>Go around the table. Each player says a single word related to the secret word.<br/>Mr. White must bluff!</p>
+    <button class="btn btn-primary" onclick="goToVote()">Start Voting</button>
   </div>
 </div>
 
@@ -143,8 +135,7 @@
     <div class="round-badge" id="vote-round-badge">Round 1</div>
   </div>
   <div class="vote-body">
-    <p class="vote-instruction">Discuss then vote: who is Mr. White?</p>
-    <div id="clues-summary" class="clues-summary"></div>
+    <p class="vote-instruction">Who is Mr. White?</p>
     <div id="vote-options" class="vote-options"></div>
     <button id="confirm-vote-btn" class="btn btn-primary btn-danger hidden" onclick="confirmVote()">Eliminate Selected Player</button>
   </div>
@@ -153,7 +144,53 @@
 <!-- SCREEN: Elimination -->
 <div id="screen-elimination" class="screen">
   <div class="elimination-body">
-    <div id="elim-icon" class="elim-icon"></div>
+    <div class="stick-scene">
+      <svg class="stick-svg" viewBox="0 0 380 130" xmlns="http://www.w3.org/2000/svg">
+        <!-- ground -->
+        <line x1="10" y1="118" x2="370" y2="118" stroke="#e63946" stroke-width="2" stroke-opacity="0.3"/>
+
+        <!-- VICTIM (white, right side) -->
+        <g class="sf-victim">
+          <!-- head -->
+          <circle cx="290" cy="32" r="13" fill="none" stroke="#edf2f4" stroke-width="2.5"/>
+          <!-- scared eyes -->
+          <circle cx="285" cy="29" r="2" fill="#edf2f4"/>
+          <circle cx="295" cy="29" r="2" fill="#edf2f4"/>
+          <!-- open scared mouth -->
+          <ellipse cx="290" cy="37" rx="4" ry="3" fill="#edf2f4"/>
+          <!-- body -->
+          <line x1="290" y1="45" x2="290" y2="85" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- left arm back -->
+          <line x1="290" y1="58" x2="268" y2="70" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- right arm forward -->
+          <line x1="290" y1="58" x2="315" y2="50" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- legs running -->
+          <line x1="290" y1="85" x2="272" y2="116" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="290" y1="85" x2="305" y2="113" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- CANNIBAL (red, left side) -->
+        <g class="sf-cannibal">
+          <!-- head -->
+          <circle cx="65" cy="32" r="13" fill="#e63946" stroke="#e63946" stroke-width="2"/>
+          <!-- X eyes -->
+          <line x1="59" y1="27" x2="63" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="63" y1="27" x2="59" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="68" y1="27" x2="72" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="72" y1="27" x2="68" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <!-- jagged open mouth (hungry) -->
+          <polyline points="58,38 61,43 64,39 67,43 70,39 73,43" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- body -->
+          <line x1="65" y1="45" x2="65" y2="85" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- arms raised menacingly -->
+          <line x1="65" y1="57" x2="43" y2="42" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="65" y1="57" x2="87" y2="42" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- legs running -->
+          <line x1="65" y1="85" x2="46" y2="116" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="65" y1="85" x2="80" y2="113" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
     <h2 id="elim-title"></h2>
     <p id="elim-message"></p>
     <button id="elim-next-btn" class="btn btn-primary" onclick="afterElimination()"></button>

@@ -34,8 +34,6 @@ const state = {
   mrWhiteIndex: -1,
   revealIndex: 0,
   revealed: false,
-  currentClueIndex: 0,
-  clues: [],
   eliminated: [],
   round: 1,
   votedOut: -1,
@@ -58,13 +56,6 @@ function getActivePlayers() {
     .filter(p => !state.eliminated.includes(p.index));
 }
 
-function avatarEl(playerIndex, name) {
-  const div = document.createElement("div");
-  div.className = `clue-avatar av${playerIndex % 8}`;
-  div.style.cssText = "width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;";
-  div.textContent = name.charAt(0).toUpperCase();
-  return div;
-}
 
 // ===== Setup Screen =====
 let playerCount = 4;
@@ -115,8 +106,6 @@ function startGame() {
   state.mrWhiteIndex = mrWhite;
   state.revealIndex = 0;
   state.revealed = false;
-  state.currentClueIndex = 0;
-  state.clues = [];
   state.eliminated = [];
   state.round = 1;
   state.votedOut = -1;
@@ -175,64 +164,8 @@ function nextReveal() {
 
 // ===== Clue Phase =====
 function startCluePhase() {
-  state.clues = getActivePlayers().map(p => ({ playerIndex: p.index, clue: null }));
-  state.currentClueIndex = 0;
   document.getElementById("clue-round-badge").textContent = `Round ${state.round}`;
   showScreen("screen-clues");
-  renderCluePhase();
-}
-
-function renderCluePhase() {
-  const list = document.getElementById("clues-list");
-  list.innerHTML = "";
-
-  state.clues.forEach((entry, i) => {
-    const player = state.players[entry.playerIndex];
-    const item = document.createElement("div");
-    item.className = "clue-item";
-
-    const info = document.createElement("div");
-    info.className = "clue-info";
-    info.innerHTML = `<div class="clue-player-name">${player.name}</div>`;
-
-    if (entry.clue !== null) {
-      info.innerHTML += `<div class="clue-word">${entry.clue}</div>`;
-    } else if (i === state.currentClueIndex) {
-      info.innerHTML += `<div class="clue-pending">Giving clue...</div>`;
-    } else {
-      info.innerHTML += `<div class="clue-pending">Waiting...</div>`;
-    }
-
-    item.appendChild(avatarEl(entry.playerIndex, player.name));
-    item.appendChild(info);
-    list.appendChild(item);
-  });
-
-  const inputSection = document.getElementById("clue-input-section");
-  const doneSection = document.getElementById("clue-done-section");
-
-  if (state.currentClueIndex < state.clues.length) {
-    const currentEntry = state.clues[state.currentClueIndex];
-    const currentPlayer = state.players[currentEntry.playerIndex];
-    document.getElementById("clue-prompt").textContent = `${currentPlayer.name}, give your clue:`;
-    document.getElementById("clue-input").value = "";
-    inputSection.classList.remove("hidden");
-    doneSection.classList.add("hidden");
-    setTimeout(() => document.getElementById("clue-input").focus(), 100);
-  } else {
-    inputSection.classList.add("hidden");
-    doneSection.classList.remove("hidden");
-  }
-}
-
-function submitClue() {
-  const input = document.getElementById("clue-input");
-  const raw = input.value.trim();
-  if (!raw) return;
-  const word = raw.split(/\s+/)[0];
-  state.clues[state.currentClueIndex].clue = word;
-  state.currentClueIndex++;
-  renderCluePhase();
 }
 
 // ===== Vote Phase =====
@@ -243,18 +176,6 @@ function goToVote() {
   document.getElementById("vote-round-badge").textContent = `Round ${state.round}`;
   document.getElementById("confirm-vote-btn").classList.add("hidden");
 
-  // Clues summary
-  const summary = document.getElementById("clues-summary");
-  summary.innerHTML = `<h3>Clues this round</h3>`;
-  state.clues.forEach(entry => {
-    const player = state.players[entry.playerIndex];
-    const row = document.createElement("div");
-    row.className = "summary-row";
-    row.innerHTML = `<span class="summary-name">${player.name}</span><span class="summary-clue">${entry.clue || "—"}</span>`;
-    summary.appendChild(row);
-  });
-
-  // Vote options
   const voteOptions = document.getElementById("vote-options");
   voteOptions.innerHTML = "";
   getActivePlayers().forEach(player => {
@@ -263,7 +184,7 @@ function goToVote() {
     opt.dataset.index = player.index;
     opt.innerHTML = `
       <div class="vote-check">&#10003;</div>
-      ${avatarEl(player.index, player.name).outerHTML}
+      <div class="clue-avatar av${player.index % 8}" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">${player.name.charAt(0).toUpperCase()}</div>
       <div class="vote-option-name">${player.name}</div>
     `;
     opt.addEventListener("click", () => selectVote(player.index));
@@ -293,14 +214,19 @@ function showEliminationScreen(playerIndex) {
   const player = state.players[playerIndex];
   const isMrWhite = playerIndex === state.mrWhiteIndex;
 
-  document.getElementById("elim-icon").innerHTML = isMrWhite ? "&#127343;" : "&#128128;";
   document.getElementById("elim-title").textContent = `${player.name} was eliminated!`;
   document.getElementById("elim-message").textContent = isMrWhite
     ? "Mr. White has been caught! One last chance to guess the word..."
     : `${player.name} was a Civilian. The hunt continues!`;
 
-  const btn = document.getElementById("elim-next-btn");
-  btn.textContent = isMrWhite ? "Mr. White's Final Guess" : "Continue";
+  document.getElementById("elim-next-btn").textContent =
+    isMrWhite ? "Mr. White's Final Guess" : "Continue";
+
+  // Re-trigger CSS animation by replacing animated elements
+  [".sf-cannibal", ".sf-victim"].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) { const clone = el.cloneNode(true); el.replaceWith(clone); }
+  });
 
   showScreen("screen-elimination");
 }
