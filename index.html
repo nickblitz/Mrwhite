@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mr. White</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SCREEN: Welcome -->
+<div id="screen-welcome" class="screen active">
+  <div class="center-card">
+    <div class="logo">
+      <div class="logo-hat"></div>
+      <div class="logo-face">?</div>
+    </div>
+    <h1 class="title">Mr. White</h1>
+    <p class="subtitle">A social deduction game</p>
+    <button class="btn btn-primary" onclick="showScreen('screen-setup')">Start Game</button>
+    <button class="btn btn-ghost" onclick="showScreen('screen-rules')">How to Play</button>
+  </div>
+</div>
+
+<!-- SCREEN: Rules -->
+<div id="screen-rules" class="screen">
+  <div class="screen-header">
+    <button class="btn-back" onclick="showScreen('screen-welcome')">&#8592; Back</button>
+    <h2>How to Play</h2>
+  </div>
+  <div class="rules-body">
+    <div class="rule-block">
+      <div class="rule-icon">&#128100;</div>
+      <div>
+        <h3>Roles</h3>
+        <p>All players except <strong>Mr. White</strong> receive the same secret word. Mr. White gets no word.</p>
+      </div>
+    </div>
+    <div class="rule-block">
+      <div class="rule-icon">&#128172;</div>
+      <div>
+        <h3>Clues</h3>
+        <p>Each player gives exactly <strong>one word</strong> as a clue related to the secret word. Mr. White must bluff!</p>
+      </div>
+    </div>
+    <div class="rule-block">
+      <div class="rule-icon">&#128077;</div>
+      <div>
+        <h3>Vote</h3>
+        <p>Players discuss and vote to eliminate who they think is Mr. White. Most votes gets eliminated.</p>
+      </div>
+    </div>
+    <div class="rule-block">
+      <div class="rule-icon">&#127381;</div>
+      <div>
+        <h3>Guess</h3>
+        <p>If Mr. White is eliminated, they get <strong>one chance</strong> to guess the secret word.</p>
+      </div>
+    </div>
+    <div class="rule-block">
+      <div class="rule-icon">&#127942;</div>
+      <div>
+        <h3>Win Conditions</h3>
+        <ul>
+          <li><strong>Civilians win</strong> if Mr. White is eliminated and guesses wrong.</li>
+          <li><strong>Mr. White wins</strong> if they survive to the final 2 players OR correctly guess the word.</li>
+        </ul>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showScreen('screen-welcome')">Got it!</button>
+  </div>
+</div>
+
+<!-- SCREEN: Setup -->
+<div id="screen-setup" class="screen">
+  <div class="screen-header">
+    <button class="btn-back" onclick="showScreen('screen-welcome')">&#8592; Back</button>
+    <h2>Game Setup</h2>
+  </div>
+  <div class="setup-body">
+    <div class="form-group">
+      <label>Number of Players</label>
+      <div class="player-count-control">
+        <button class="count-btn" onclick="changePlayerCount(-1)">&#8722;</button>
+        <span id="player-count-display">4</span>
+        <button class="count-btn" onclick="changePlayerCount(1)">&#43;</button>
+      </div>
+    </div>
+    <div id="player-names-list" class="player-names-list"></div>
+    <button class="btn btn-primary" onclick="startGame()">Deal Cards</button>
+  </div>
+</div>
+
+<!-- SCREEN: Role Reveal -->
+<div id="screen-role-reveal" class="screen">
+  <div class="screen-header">
+    <h2 id="reveal-player-name"></h2>
+    <div class="round-badge" id="reveal-progress"></div>
+  </div>
+  <div class="reveal-body">
+    <p class="reveal-instruction">Pass the phone to <strong id="reveal-player-name2"></strong>, then tap to reveal your role.</p>
+    <div id="role-card" class="role-card role-card-hidden" onclick="toggleReveal()">
+      <div class="role-card-inner">
+        <div class="role-card-front">
+          <div class="card-question">?</div>
+          <p>Tap to reveal</p>
+        </div>
+        <div class="role-card-back" id="role-card-back">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </div>
+    <button id="reveal-next-btn" class="btn btn-primary hidden" onclick="nextReveal()">Done, pass the phone</button>
+  </div>
+</div>
+
+<!-- SCREEN: Clues -->
+<div id="screen-clues" class="screen">
+  <div class="screen-header">
+    <h2>Give Your Clue</h2>
+    <div class="round-badge" id="clue-round-badge">Round 1</div>
+  </div>
+  <div class="clues-body">
+    <div id="clues-list" class="clues-list"></div>
+    <div id="clue-input-section" class="clue-input-section">
+      <p id="clue-prompt"></p>
+      <div class="clue-input-row">
+        <input type="text" id="clue-input" maxlength="30" placeholder="Your one-word clue..." onkeydown="if(event.key==='Enter') submitClue()" />
+        <button class="btn btn-primary" onclick="submitClue()">Submit</button>
+      </div>
+      <p class="clue-hint">One word only!</p>
+    </div>
+    <div id="clue-done-section" class="hidden">
+      <button class="btn btn-primary" onclick="goToVote()">Start Voting</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: Vote -->
+<div id="screen-vote" class="screen">
+  <div class="screen-header">
+    <h2>Vote</h2>
+    <div class="round-badge" id="vote-round-badge">Round 1</div>
+  </div>
+  <div class="vote-body">
+    <p class="vote-instruction">Discuss then vote: who is Mr. White?</p>
+    <div id="clues-summary" class="clues-summary"></div>
+    <div id="vote-options" class="vote-options"></div>
+    <button id="confirm-vote-btn" class="btn btn-primary btn-danger hidden" onclick="confirmVote()">Eliminate Selected Player</button>
+  </div>
+</div>
+
+<!-- SCREEN: Elimination -->
+<div id="screen-elimination" class="screen">
+  <div class="elimination-body">
+    <div id="elim-icon" class="elim-icon"></div>
+    <h2 id="elim-title"></h2>
+    <p id="elim-message"></p>
+    <button id="elim-next-btn" class="btn btn-primary" onclick="afterElimination()"></button>
+  </div>
+</div>
+
+<!-- SCREEN: Mr. White Guess -->
+<div id="screen-guess" class="screen">
+  <div class="screen-header">
+    <h2>Mr. White's Last Chance</h2>
+  </div>
+  <div class="guess-body">
+    <p id="guess-prompt"></p>
+    <div class="clue-input-row">
+      <input type="text" id="guess-input" maxlength="30" placeholder="What is the secret word?" onkeydown="if(event.key==='Enter') submitGuess()" />
+      <button class="btn btn-primary" onclick="submitGuess()">Guess</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: Game Over -->
+<div id="screen-gameover" class="screen">
+  <div class="center-card">
+    <div id="gameover-icon" class="gameover-icon"></div>
+    <h2 id="gameover-title"></h2>
+    <p id="gameover-message"></p>
+    <div id="gameover-word" class="gameover-word"></div>
+    <button class="btn btn-primary" onclick="newGame()">Play Again</button>
+    <button class="btn btn-ghost" onclick="showScreen('screen-welcome')">Main Menu</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
