@@ -32,29 +32,26 @@
     <div class="rule-block">
       <div class="rule-icon">&#128100;</div>
       <div>
-        <h3>Roles</h3>
-        <p>All players except <strong>Mr. White</strong> receive the same secret word. Mr. White gets no word.</p>
+        <h3>Three Roles</h3>
+        <ul>
+          <li><strong>Civilians</strong> — all get the same secret word</li>
+          <li><strong>Imposter</strong> — gets a similar but different word</li>
+          <li><strong>Mr. White</strong> — gets no word at all, must bluff</li>
+        </ul>
       </div>
     </div>
     <div class="rule-block">
       <div class="rule-icon">&#128172;</div>
       <div>
         <h3>Clues</h3>
-        <p>Each player gives exactly <strong>one word</strong> as a clue related to the secret word. Mr. White must bluff!</p>
+        <p>Everyone says one word out loud as a clue. Civilians hint at their word. The Imposter and Mr. White must blend in!</p>
       </div>
     </div>
     <div class="rule-block">
       <div class="rule-icon">&#128077;</div>
       <div>
         <h3>Vote</h3>
-        <p>Players discuss and vote to eliminate who they think is Mr. White. Most votes gets eliminated.</p>
-      </div>
-    </div>
-    <div class="rule-block">
-      <div class="rule-icon">&#127381;</div>
-      <div>
-        <h3>Guess</h3>
-        <p>If Mr. White is eliminated, they get <strong>one chance</strong> to guess the secret word.</p>
+        <p>Pick a player to eliminate, then accuse them: are they the <strong>Imposter</strong> or <strong>Mr. White</strong>?</p>
       </div>
     </div>
     <div class="rule-block">
@@ -62,8 +59,9 @@
       <div>
         <h3>Win Conditions</h3>
         <ul>
-          <li><strong>Civilians win</strong> if Mr. White is eliminated and guesses wrong.</li>
-          <li><strong>Mr. White wins</strong> if they survive to the final 2 players OR correctly guess the word.</li>
+          <li><strong>Civilians win</strong> — eliminate both the Imposter AND Mr. White (who guesses wrong)</li>
+          <li><strong>Mr. White wins</strong> — survives to 2 players, or guesses the secret word correctly</li>
+          <li><strong>Imposter wins</strong> — survives to 2 players, or Mr. White is caught but guesses wrong while Imposter lives</li>
         </ul>
       </div>
     </div>
@@ -99,7 +97,7 @@
   </div>
   <div class="reveal-body">
     <p class="reveal-instruction">Pass the phone to <strong id="reveal-player-name2"></strong>, then tap to reveal your role.</p>
-    <div id="role-card" class="role-card role-card-hidden" onclick="toggleReveal()">
+    <div id="role-card" class="role-card" onclick="toggleReveal()">
       <div class="role-card-inner">
         <div class="role-card-front">
           <div class="card-question">?</div>
@@ -123,7 +121,7 @@
   <div class="clues-verbal-body">
     <div class="clues-verbal-icon">&#128172;</div>
     <h3>Everyone give one word — out loud!</h3>
-    <p>Go around the table. Each player says a single word related to the secret word.<br/>Mr. White must bluff!</p>
+    <p>Go around the table. Each player says a single word as a clue.<br/>Imposter and Mr. White must bluff!</p>
     <button class="btn btn-primary" onclick="goToVote()">Start Voting</button>
   </div>
 </div>
@@ -135,9 +133,26 @@
     <div class="round-badge" id="vote-round-badge">Round 1</div>
   </div>
   <div class="vote-body">
-    <p class="vote-instruction">Who is Mr. White?</p>
+    <p class="vote-step-label" id="vote-step-label">Step 1 — Who do you suspect?</p>
     <div id="vote-options" class="vote-options"></div>
-    <button id="confirm-vote-btn" class="btn btn-primary btn-danger hidden" onclick="confirmVote()">Eliminate Selected Player</button>
+
+    <div id="accusation-section" class="accusation-section hidden">
+      <p class="vote-step-label">Step 2 — What are they?</p>
+      <div class="accusation-options">
+        <div class="accuse-btn accuse-mrwhite" id="accuse-mrwhite" onclick="setAccusation('mrwhite')">
+          <div class="accuse-icon">&#127345;</div>
+          <div class="accuse-label">Mr. White</div>
+          <div class="accuse-desc">No word — pure bluff</div>
+        </div>
+        <div class="accuse-btn accuse-imposter" id="accuse-imposter" onclick="setAccusation('imposter')">
+          <div class="accuse-icon">&#128373;</div>
+          <div class="accuse-label">Imposter</div>
+          <div class="accuse-desc">Has a similar word</div>
+        </div>
+      </div>
+    </div>
+
+    <button id="confirm-vote-btn" class="btn btn-primary btn-danger hidden" onclick="confirmVote()">Eliminate!</button>
   </div>
 </div>
 
@@ -146,52 +161,38 @@
   <div class="elimination-body">
     <div class="stick-scene">
       <svg class="stick-svg" viewBox="0 0 380 130" xmlns="http://www.w3.org/2000/svg">
-        <!-- ground -->
         <line x1="10" y1="118" x2="370" y2="118" stroke="#e63946" stroke-width="2" stroke-opacity="0.3"/>
-
-        <!-- VICTIM (white, right side) -->
+        <!-- VICTIM -->
         <g class="sf-victim">
-          <!-- head -->
           <circle cx="290" cy="32" r="13" fill="none" stroke="#edf2f4" stroke-width="2.5"/>
-          <!-- scared eyes -->
           <circle cx="285" cy="29" r="2" fill="#edf2f4"/>
           <circle cx="295" cy="29" r="2" fill="#edf2f4"/>
-          <!-- open scared mouth -->
           <ellipse cx="290" cy="37" rx="4" ry="3" fill="#edf2f4"/>
-          <!-- body -->
           <line x1="290" y1="45" x2="290" y2="85" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- left arm back -->
           <line x1="290" y1="58" x2="268" y2="70" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- right arm forward -->
           <line x1="290" y1="58" x2="315" y2="50" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- legs running -->
           <line x1="290" y1="85" x2="272" y2="116" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
           <line x1="290" y1="85" x2="305" y2="113" stroke="#edf2f4" stroke-width="2.5" stroke-linecap="round"/>
         </g>
-
-        <!-- CANNIBAL (red, left side) -->
+        <!-- CANNIBAL -->
         <g class="sf-cannibal">
-          <!-- head -->
           <circle cx="65" cy="32" r="13" fill="#e63946" stroke="#e63946" stroke-width="2"/>
-          <!-- X eyes -->
           <line x1="59" y1="27" x2="63" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <line x1="63" y1="27" x2="59" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <line x1="68" y1="27" x2="72" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <line x1="72" y1="27" x2="68" y2="31" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          <!-- jagged open mouth (hungry) -->
           <polyline points="58,38 61,43 64,39 67,43 70,39 73,43" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- body -->
           <line x1="65" y1="45" x2="65" y2="85" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- arms raised menacingly -->
           <line x1="65" y1="57" x2="43" y2="42" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
           <line x1="65" y1="57" x2="87" y2="42" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- legs running -->
           <line x1="65" y1="85" x2="46" y2="116" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
           <line x1="65" y1="85" x2="80" y2="113" stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
         </g>
       </svg>
     </div>
     <h2 id="elim-title"></h2>
+    <p id="elim-role-reveal" class="elim-role-reveal"></p>
+    <p id="elim-accusation-result" class="elim-accusation-result"></p>
     <p id="elim-message"></p>
     <button id="elim-next-btn" class="btn btn-primary" onclick="afterElimination()"></button>
   </div>
