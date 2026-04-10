@@ -1,42 +1,67 @@
 "use strict";
 
-// ===== Word List =====
-const WORD_POOL = [
-  // Food & Drink
-  "Pizza", "Sushi", "Coffee", "Chocolate", "Ice Cream", "Burger", "Pasta",
-  "Soda", "Cake", "Sandwich", "Salad", "Steak", "Soup", "Donut", "Taco",
-  "Bread", "Cheese", "Wine", "Beer", "Juice", "Milk", "Egg", "Bacon",
-  "Fries", "Popcorn", "Honey", "Butter", "Rice", "Noodles", "Cookie",
-  // Nature
-  "Mountain", "Ocean", "River", "Forest", "Desert", "Volcano", "Rainbow",
-  "Thunder", "Snowflake", "Beach", "Cave", "Island", "Jungle", "Waterfall",
-  "Cloud", "Moon", "Star", "Sun", "Tornado", "Fog", "Glacier", "Coral",
-  // Animals
-  "Lion", "Shark", "Elephant", "Penguin", "Dolphin", "Eagle", "Wolf",
-  "Panda", "Tiger", "Crocodile", "Gorilla", "Butterfly", "Octopus", "Owl",
-  "Fox", "Flamingo", "Cheetah", "Koala", "Deer", "Bat", "Snake", "Turtle",
-  // Objects & Places
-  "Library", "Airport", "Museum", "Hospital", "Stadium", "Castle",
-  "Submarine", "Telescope", "Compass", "Lantern", "Mirror", "Clock",
-  "Guitar", "Camera", "Umbrella", "Bicycle", "Rocket", "Sword", "Diamond",
-  "Lighthouse", "Temple", "Skyscraper", "Bridge", "Tunnel",
-  // Concepts & Pop Culture
-  "Dream", "Shadow", "Echo", "Mystery", "Silence", "Adventure", "Secret",
-  "Gravity", "Luck", "Memory", "Chaos", "Harmony", "Illusion",
-  "Pirate", "Ninja", "Vampire", "Zombie", "Wizard", "Dragon", "Ghost",
-  "Robot", "Mermaid", "Alien", "Superhero", "Detective", "Spy",
+// ===== Word Pairs (civilian word / imposter word) =====
+const WORD_PAIRS = [
+  { civilian: "Coffee",      imposter: "Tea" },
+  { civilian: "Beach",       imposter: "Lake" },
+  { civilian: "Guitar",      imposter: "Violin" },
+  { civilian: "Pizza",       imposter: "Flatbread" },
+  { civilian: "Lion",        imposter: "Tiger" },
+  { civilian: "Soccer",      imposter: "Rugby" },
+  { civilian: "Castle",      imposter: "Fortress" },
+  { civilian: "Shark",       imposter: "Dolphin" },
+  { civilian: "Diamond",     imposter: "Ruby" },
+  { civilian: "Wine",        imposter: "Champagne" },
+  { civilian: "Submarine",   imposter: "Boat" },
+  { civilian: "Astronaut",   imposter: "Pilot" },
+  { civilian: "Library",     imposter: "Bookstore" },
+  { civilian: "Sushi",       imposter: "Sashimi" },
+  { civilian: "Tennis",      imposter: "Badminton" },
+  { civilian: "Piano",       imposter: "Keyboard" },
+  { civilian: "Dragon",      imposter: "Dinosaur" },
+  { civilian: "Hospital",    imposter: "Clinic" },
+  { civilian: "Eagle",       imposter: "Hawk" },
+  { civilian: "Burger",      imposter: "Sandwich" },
+  { civilian: "Tornado",     imposter: "Hurricane" },
+  { civilian: "Volcano",     imposter: "Mountain" },
+  { civilian: "Vampire",     imposter: "Werewolf" },
+  { civilian: "Pirate",      imposter: "Sailor" },
+  { civilian: "Wizard",      imposter: "Witch" },
+  { civilian: "Robot",       imposter: "Android" },
+  { civilian: "Museum",      imposter: "Gallery" },
+  { civilian: "Snowflake",   imposter: "Raindrop" },
+  { civilian: "Panda",       imposter: "Koala" },
+  { civilian: "Chocolate",   imposter: "Candy" },
+  { civilian: "Rocket",      imposter: "Missile" },
+  { civilian: "Spy",         imposter: "Detective" },
+  { civilian: "Sword",       imposter: "Dagger" },
+  { civilian: "Clock",       imposter: "Watch" },
+  { civilian: "Doctor",      imposter: "Nurse" },
+  { civilian: "Prison",      imposter: "Police Station" },
+  { civilian: "Forest",      imposter: "Jungle" },
+  { civilian: "Motorcycle",  imposter: "Bicycle" },
+  { civilian: "Champagne",   imposter: "Beer" },
+  { civilian: "Owl",         imposter: "Bat" },
+  { civilian: "Crown",       imposter: "Tiara" },
+  { civilian: "Cannon",      imposter: "Catapult" },
+  { civilian: "Penguin",     imposter: "Seal" },
+  { civilian: "Popcorn",     imposter: "Chips" },
+  { civilian: "Compass",     imposter: "Map" },
 ];
 
 // ===== Game State =====
 const state = {
-  players: [],
-  secretWord: "",
+  players: [],        // [{name, role}]  role: "civilian"|"mrwhite"|"imposter"
+  civilianWord: "",
+  imposterWord: "",
   mrWhiteIndex: -1,
+  imposterIndex: -1,
   revealIndex: 0,
   revealed: false,
   eliminated: [],
   round: 1,
   votedOut: -1,
+  accusation: null,   // "mrwhite" | "imposter"
 };
 
 // ===== Utilities =====
@@ -50,12 +75,20 @@ function rand(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function getActivePlayers() {
   return state.players
     .map((p, i) => ({ ...p, index: i }))
     .filter(p => !state.eliminated.includes(p.index));
 }
-
 
 // ===== Setup Screen =====
 let playerCount = 4;
@@ -95,20 +128,27 @@ function getPlayerNames() {
 // ===== Start Game =====
 function startGame() {
   const names = getPlayerNames();
-  const word = rand(WORD_POOL);
-  const mrWhite = Math.floor(Math.random() * names.length);
+  const pair = rand(WORD_PAIRS);
+
+  // Randomly assign special roles to 2 different players
+  const indices = shuffle([...Array(names.length).keys()]);
+  const mrWhite = indices[0];
+  const imposter = indices[1];
 
   state.players = names.map((name, idx) => ({
     name,
-    role: idx === mrWhite ? "mrwhite" : "civilian",
+    role: idx === mrWhite ? "mrwhite" : idx === imposter ? "imposter" : "civilian",
   }));
-  state.secretWord = word;
+  state.civilianWord = pair.civilian;
+  state.imposterWord = pair.imposter;
   state.mrWhiteIndex = mrWhite;
+  state.imposterIndex = imposter;
   state.revealIndex = 0;
   state.revealed = false;
   state.eliminated = [];
   state.round = 1;
   state.votedOut = -1;
+  state.accusation = null;
 
   showRevealForPlayer(0);
 }
@@ -131,14 +171,23 @@ function showRevealForPlayer(idx) {
     back.innerHTML = `
       <div class="role-label">You are</div>
       <div class="role-name">Mr. White</div>
-      <div class="role-desc">You have no word.<br/>Bluff and listen carefully!</div>
+      <div class="role-desc">You have <em>no word</em>.<br/>Listen, bluff, survive!</div>
+    `;
+  } else if (player.role === "imposter") {
+    back.className = "role-card-back imposter-back";
+    back.innerHTML = `
+      <div class="role-label">You are the</div>
+      <div class="role-name">Imposter</div>
+      <div class="role-word">Your word</div>
+      <div class="role-secret">${state.imposterWord}</div>
+      <div class="role-desc">Blend in — civilians have a <em>different</em> word!</div>
     `;
   } else {
     back.className = "role-card-back civilian-back";
     back.innerHTML = `
       <div class="role-label">Secret Word</div>
-      <div class="role-secret">${state.secretWord}</div>
-      <div class="role-desc">Give clues without being too obvious.<br/>Find Mr. White!</div>
+      <div class="role-secret">${state.civilianWord}</div>
+      <div class="role-desc">Find the Imposter &amp; Mr. White.<br/>Don't be too obvious!</div>
     `;
   }
 
@@ -170,11 +219,16 @@ function startCluePhase() {
 
 // ===== Vote Phase =====
 let selectedVote = -1;
+let selectedAccusation = null;
 
 function goToVote() {
   selectedVote = -1;
+  selectedAccusation = null;
   document.getElementById("vote-round-badge").textContent = `Round ${state.round}`;
   document.getElementById("confirm-vote-btn").classList.add("hidden");
+  document.getElementById("accusation-section").classList.add("hidden");
+  document.getElementById("accuse-mrwhite").classList.remove("selected");
+  document.getElementById("accuse-imposter").classList.remove("selected");
 
   const voteOptions = document.getElementById("vote-options");
   voteOptions.innerHTML = "";
@@ -196,15 +250,29 @@ function goToVote() {
 
 function selectVote(playerIndex) {
   selectedVote = playerIndex;
+  selectedAccusation = null;
   document.querySelectorAll(".vote-option").forEach(opt => {
     opt.classList.toggle("selected", parseInt(opt.dataset.index) === playerIndex);
   });
-  document.getElementById("confirm-vote-btn").classList.remove("hidden");
+  document.getElementById("accuse-mrwhite").classList.remove("selected");
+  document.getElementById("accuse-imposter").classList.remove("selected");
+  document.getElementById("accusation-section").classList.remove("hidden");
+  document.getElementById("confirm-vote-btn").classList.add("hidden");
+}
+
+function setAccusation(type) {
+  selectedAccusation = type;
+  document.getElementById("accuse-mrwhite").classList.toggle("selected", type === "mrwhite");
+  document.getElementById("accuse-imposter").classList.toggle("selected", type === "imposter");
+  if (selectedVote !== -1) {
+    document.getElementById("confirm-vote-btn").classList.remove("hidden");
+  }
 }
 
 function confirmVote() {
-  if (selectedVote === -1) return;
+  if (selectedVote === -1 || !selectedAccusation) return;
   state.votedOut = selectedVote;
+  state.accusation = selectedAccusation;
   state.eliminated.push(selectedVote);
   showEliminationScreen(selectedVote);
 }
@@ -212,17 +280,42 @@ function confirmVote() {
 // ===== Elimination Screen =====
 function showEliminationScreen(playerIndex) {
   const player = state.players[playerIndex];
-  const isMrWhite = playerIndex === state.mrWhiteIndex;
+  const actualRole = player.role;
+  const accused = state.accusation;
+  const correct = accused === actualRole;
+
+  // Role label for display
+  const roleLabel = actualRole === "mrwhite" ? "Mr. White" :
+                    actualRole === "imposter" ? "the Imposter" : "a Civilian";
+  const accusedLabel = accused === "mrwhite" ? "Mr. White" : "the Imposter";
 
   document.getElementById("elim-title").textContent = `${player.name} was eliminated!`;
-  document.getElementById("elim-message").textContent = isMrWhite
-    ? "Mr. White has been caught! One last chance to guess the word..."
-    : `${player.name} was a Civilian. The hunt continues!`;
+  document.getElementById("elim-role-reveal").textContent = `They were ${roleLabel}.`;
 
-  document.getElementById("elim-next-btn").textContent =
-    isMrWhite ? "Mr. White's Final Guess" : "Continue";
+  if (actualRole !== "civilian") {
+    document.getElementById("elim-accusation-result").textContent =
+      correct ? `✓ Correct accusation!` : `✗ Wrong — you accused them of being ${accusedLabel}.`;
+    document.getElementById("elim-accusation-result").className =
+      "elim-accusation-result " + (correct ? "correct" : "wrong");
+  } else {
+    document.getElementById("elim-accusation-result").textContent = "";
+  }
 
-  // Re-trigger CSS animation by replacing animated elements
+  const nextBtn = document.getElementById("elim-next-btn");
+  if (actualRole === "mrwhite") {
+    document.getElementById("elim-message").textContent = "Mr. White gets one last chance to guess the word!";
+    nextBtn.textContent = "Mr. White's Final Guess";
+  } else if (actualRole === "imposter") {
+    document.getElementById("elim-message").textContent = correct
+      ? "The Imposter has been unmasked!"
+      : "You got the wrong role — but they're still out.";
+    nextBtn.textContent = "Continue";
+  } else {
+    document.getElementById("elim-message").textContent = "An innocent Civilian was eliminated. The hunt continues!";
+    nextBtn.textContent = "Continue";
+  }
+
+  // Restart stick figure animation
   [".sf-cannibal", ".sf-victim"].forEach(sel => {
     const el = document.querySelector(sel);
     if (el) { const clone = el.cloneNode(true); el.replaceWith(clone); }
@@ -232,15 +325,24 @@ function showEliminationScreen(playerIndex) {
 }
 
 function afterElimination() {
-  if (state.votedOut === state.mrWhiteIndex) {
+  const actualRole = state.players[state.votedOut].role;
+
+  if (actualRole === "mrwhite") {
     showGuessScreen();
     return;
   }
 
+  checkSurvivalWin();
+}
+
+function checkSurvivalWin() {
   const active = getActivePlayers();
-  if (active.length <= 2 && active.some(p => p.index === state.mrWhiteIndex)) {
-    endGame("mrwhite", "survived");
-    return;
+  const mrWhiteAlive = active.some(p => p.index === state.mrWhiteIndex);
+  const imposterAlive = active.some(p => p.index === state.imposterIndex);
+
+  if (active.length <= 2) {
+    if (mrWhiteAlive) { endGame("mrwhite", "survived"); return; }
+    if (imposterAlive) { endGame("imposter", "survived"); return; }
   }
 
   state.round++;
@@ -251,8 +353,8 @@ function afterElimination() {
 function showGuessScreen() {
   const mrWhite = state.players[state.mrWhiteIndex];
   document.getElementById("guess-prompt").innerHTML =
-    `<strong>${mrWhite.name}</strong>, you've been caught as Mr. White!<br/><br/>
-     Guess the secret word correctly to steal the win.`;
+    `<strong>${mrWhite.name}</strong> was Mr. White!<br/><br/>
+     Guess the civilians' secret word to steal the win.`;
   document.getElementById("guess-input").value = "";
   showScreen("screen-guess");
   setTimeout(() => document.getElementById("guess-input").focus(), 300);
@@ -262,8 +364,16 @@ function submitGuess() {
   const guess = document.getElementById("guess-input").value.trim().toLowerCase();
   if (!guess) return;
 
-  if (guess === state.secretWord.toLowerCase()) {
+  if (guess === state.civilianWord.toLowerCase()) {
     endGame("mrwhite", "guess");
+    return;
+  }
+
+  // Mr. White guessed wrong — does Imposter still live?
+  const active = getActivePlayers();
+  const imposterAlive = active.some(p => p.index === state.imposterIndex);
+  if (imposterAlive) {
+    endGame("imposter", "mrwhite_lost");
   } else {
     endGame("civilians", "wrong-guess");
   }
@@ -272,29 +382,40 @@ function submitGuess() {
 // ===== Game Over =====
 function endGame(winner, reason) {
   const mrWhite = state.players[state.mrWhiteIndex];
+  const imposter = state.players[state.imposterIndex];
   const screen = document.getElementById("screen-gameover");
-  screen.classList.toggle("mr-white-wins", winner === "mrwhite");
+
+  screen.className = "screen"; // reset classes
+  if (winner === "mrwhite") screen.classList.add("end-mrwhite");
+  else if (winner === "imposter") screen.classList.add("end-imposter");
+  else screen.classList.add("end-civilians");
+
+  const icons = { mrwhite: "&#129419;", imposter: "&#128373;", civilians: "&#127881;" };
+  document.getElementById("gameover-icon").innerHTML = icons[winner];
 
   if (winner === "mrwhite") {
-    document.getElementById("gameover-icon").innerHTML = "&#129419;";
     document.getElementById("gameover-title").textContent = "Mr. White Wins!";
     document.getElementById("gameover-message").textContent = reason === "survived"
-      ? `${mrWhite.name} survived as Mr. White and outlasted the civilians!`
+      ? `${mrWhite.name} survived as Mr. White and outlasted everyone!`
       : `${mrWhite.name} correctly guessed the secret word!`;
+  } else if (winner === "imposter") {
+    document.getElementById("gameover-title").textContent = "Imposter Wins!";
+    document.getElementById("gameover-message").textContent = reason === "survived"
+      ? `${imposter.name} blended in perfectly and survived as the Imposter!`
+      : `${imposter.name} (Imposter) wins — Mr. White was caught but the Imposter lives!`;
   } else {
-    document.getElementById("gameover-icon").innerHTML = "&#127881;";
     document.getElementById("gameover-title").textContent = "Civilians Win!";
     document.getElementById("gameover-message").textContent =
-      `${mrWhite.name} was Mr. White and failed to guess the secret word.`;
+      `Both ${mrWhite.name} (Mr. White) and ${imposter.name} (Imposter) have been eliminated!`;
   }
 
   document.getElementById("gameover-word").innerHTML =
-    `The secret word was: <span>${state.secretWord}</span>`;
+    `Civilian word: <span>${state.civilianWord}</span> &nbsp;·&nbsp; Imposter word: <span>${state.imposterWord}</span>`;
 
   showScreen("screen-gameover");
 }
 
-// ===== New Game / Rematch =====
+// ===== New Game =====
 function newGame() {
   playerCount = state.players.length;
   document.getElementById("player-count-display").textContent = playerCount;
